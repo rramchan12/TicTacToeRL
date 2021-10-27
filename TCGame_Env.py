@@ -5,7 +5,7 @@ from itertools import groupby
 from itertools import product
 
 
-
+""" This is MDP Implementation of the Tic Tac Toe Process. It is stateless, and the state is passed from the Agent. """
 class TicTacToe():
 
     def __init__(self):
@@ -23,6 +23,12 @@ class TicTacToe():
         """Takes state as an input and returns whether any row, column or diagonal has winning sum
         Example: Input state- [1, 2, 3, 4, nan, nan, nan, nan, nan]
         Output = False"""
+        state = np.reshape(curr_state, (3, 3))
+        along_axis = (15.0 in np.concatenate(
+            (np.nansum(state, axis=1), np.nansum(state, axis=0))))
+
+        return ((np.trace(state) == 15.0)
+                or (np.trace(np.fliplr(state)) == 15.0) or (along_axis))
  
 
     def is_terminal(self, curr_state):
@@ -67,7 +73,9 @@ class TicTacToe():
         Example: Input state- [1, 2, 3, 4, nan, nan, nan, nan, nan], action- [7, 9] or [position, value]
         Output = [1, 2, 3, 4, nan, nan, nan, 9, nan]
         """
-
+        curr_state[curr_action[0]] = curr_action[1]
+        return curr_state
+    
 
     def step(self, curr_state, curr_action):
         """Takes current state and action and returns the next state, reward and whether the state is terminal. Hint: First, check the board position after
@@ -75,6 +83,30 @@ class TicTacToe():
         Example: Input state- [1, 2, 3, 4, nan, nan, nan, nan, nan], action- [7, 9] or [position, value]
         Output = ([1, 2, 3, 4, nan, nan, nan, 9, nan], -1, False)"""
 
+         # ====> Agent transition
+        next_state = self.state_transition(curr_state, curr_action)
+        terminal, result = self.is_terminal(next_state)
 
+        reward = -1
+        if (result == 'Win'):
+            return next_state, 10, terminal
+        elif (result == 'Tie'):
+            return next_state, 0, terminal
+
+        # ===> Envirnoment move
+        agent_actions, env_actions = self.action_space(next_state)
+        env_random_action = random.choice(list(env_actions))
+        next_state = self.state_transition(next_state, env_random_action)
+
+        terminal, result = self.is_terminal(next_state)
+
+        # ===> Envirnoment win
+        if (result == 'Win'):
+            reward = -10
+        elif (result == 'Tie'):
+            reward = 0
+        return next_state, reward, terminal
+    
     def reset(self):
+        """ Reset the environment """
         return self.state
