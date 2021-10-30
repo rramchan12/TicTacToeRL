@@ -78,34 +78,42 @@ class TicTacToe():
     
 
     def step(self, curr_state, curr_action):
-        """Takes current state and action and returns the next state, reward and whether the state is terminal. Hint: First, check the board position after
+        """Takes current state and action and returns the next state, reward and whether the state is terminal. Hint: First,    check the board position after
         agent's move, whether the game is won/loss/tied. Then incorporate environment's move and again check the board status.
         Example: Input state- [1, 2, 3, 4, nan, nan, nan, nan, nan], action- [7, 9] or [position, value]
         Output = ([1, 2, 3, 4, nan, nan, nan, 9, nan], -1, False)"""
 
-         # ====> Agent transition
+         # ====> Agent Move
         next_state = self.state_transition(curr_state, curr_action)
         terminal, result = self.is_terminal(next_state)
 
         reward = -1
-        if (result == 'Win'):
-            return next_state, 10, terminal
-        elif (result == 'Tie'):
-            return next_state, 0, terminal
+        if (terminal):
+            if (result == 'Win'):
+                return next_state, 10, terminal, "Agent Won!"
+            elif (result == 'Tie'):
+                return next_state, 0, terminal, "It's a tie!"
+        
+        else :
 
-        # ===> Envirnoment move
-        agent_actions, env_actions = self.action_space(next_state)
-        env_random_action = random.choice(list(env_actions))
-        next_state = self.state_transition(next_state, env_random_action)
+            # ===> Environment move
+            agent_actions, env_actions = self.action_space(next_state)
+            env_random_action = random.choice(list(env_actions))
+            next_state = self.state_transition(next_state, env_random_action)
 
-        terminal, result = self.is_terminal(next_state)
-
-        # ===> Envirnoment win
-        if (result == 'Win'):
-            reward = -10
-        elif (result == 'Tie'):
-            reward = 0
-        return next_state, reward, terminal
+            terminal, result = self.is_terminal(next_state)
+            if (terminal):
+                # ===> Environment win
+                if (result == 'Win'):
+                    reward = -10
+                    message = "Environment Won!"
+                elif (result == 'Tie'):
+                    reward = 0
+                    message = "It's a tie!" 
+                return next_state, reward, terminal, message
+            else :
+                reward = -1
+                return next_state, reward, terminal, "Resume"
     
     def reset(self):
         """ Reset the environment """
